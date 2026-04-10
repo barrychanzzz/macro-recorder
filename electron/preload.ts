@@ -24,8 +24,6 @@ export interface ElectronAPI {
   getScreenSize: () => Promise<{ width: number; height: number }>;
 
   // 快捷键事件（主进程 globalShortcut 触发后转发）
-  // toggle-record: 已废弃（由 recording-stopped / request-start-record 替代），保留兼容
-  onShortcutToggleRecord: (callback: () => void) => () => void;
   onShortcutTogglePlayback: (callback: () => void) => () => void;
   // 主进程已停止录制并进入冷却期
   onRecordingStopped: (callback: (data: { events: any[] }) => void) => () => void;
@@ -66,11 +64,6 @@ const electronAPI: ElectronAPI = {
   getScreenSize: () => ipcRenderer.invoke('system:screenSize'),
 
   // 快捷键监听
-  onShortcutToggleRecord: (callback) => {
-    const handler = () => callback();
-    ipcRenderer.on('shortcut:toggle-record', handler);
-    return () => ipcRenderer.removeListener('shortcut:toggle-record', handler);
-  },
   onShortcutTogglePlayback: (callback) => {
     const handler = () => callback();
     ipcRenderer.on('shortcut:toggle-playback', handler);

@@ -1,6 +1,15 @@
 import React from 'react';
-import { RecordedEvent } from '../types';
+import { RecordedEvent, EventType } from '../types';
 import './EventList.css';
+
+/** 鼠标按钮名 → 中文显示 */
+const MOUSE_BTN_CN: Record<string, string> = { left: '左键', middle: '中键', right: '右键' };
+
+/** 解析鼠标按钮的中文显示名称 */
+function getButtonLabel(data: { button?: unknown }): string {
+  if (typeof data.button === 'string') return MOUSE_BTN_CN[data.button] || data.button;
+  return '左键';
+}
 
 interface EventListProps {
   events: RecordedEvent[];
@@ -57,14 +66,9 @@ const EventList: React.FC<EventListProps> = ({
         return `释放 ${data.key || 'Unknown'}${holdInfo}`;
       }
       case 'mousedown':
-        // ★ button 已是标准化字符串 'left'|'middle'|'right'
-        const btnLabel = typeof data.button === 'string' ? data.button : (['', '左键', '中键', '右键'][(data.button as unknown as number) ?? 0] || '未知');
-        const cnBtnMap: Record<string, string> = { left: '左键', middle: '中键', right: '右键' };
-        return `点击 ${cnBtnMap[btnLabel] || btnLabel} (${data.x}, ${data.y})`;
+        return `点击 ${getButtonLabel(data)} (${data.x}, ${data.y})`;
       case 'mouseup':
-        const upBtnLabel = typeof data.button === 'string' ? data.button : (['', '左键', '中键', '右键'][(data.button as unknown as number) ?? 0] || '未知');
-        const cnUpBtnMap: Record<string, string> = { left: '左键', middle: '中键', right: '右键' };
-        return `释放 ${cnUpBtnMap[upBtnLabel] || upBtnLabel} (${data.x}, ${data.y})`;
+        return `释放 ${getButtonLabel(data)} (${data.x}, ${data.y})`;
       case 'mousemove':
         return `移动到 (${data.x}, ${data.y})`;
       case 'wheel':
@@ -220,7 +224,7 @@ const EventEditModal: React.FC<EventEditModalProps> = ({ event, onSave, onCancel
             <label>事件类型</label>
             <select
               value={editedEvent.type}
-              onChange={(e) => setEditedEvent({ ...editedEvent, type: e.target.value as any })}
+              onChange={(e) => setEditedEvent({ ...editedEvent, type: e.target.value as EventType })}
             >
               <option value="keydown">按键按下</option>
               <option value="keyup">按键释放</option>
@@ -234,18 +238,7 @@ const EventEditModal: React.FC<EventEditModalProps> = ({ event, onSave, onCancel
           {editedEvent.type.includes('key') && (
             <>
               <div className="form-group">
-                <label>键 (Key)</label>
-                <input
-                  type="text"
-                  value={editedEvent.data.key || ''}
-                  onChange={(e) => setEditedEvent({
-                    ...editedEvent,
-                    data: { ...editedEvent.data, key: e.target.value }
-                  })}
-                />
-              </div>
-              <div className="form-group">
-                <label>按键 (Key)</label>
+                <label>按键</label>
                 <input
                   type="text"
                   value={editedEvent.data.key || ''}

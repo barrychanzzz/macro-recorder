@@ -14,13 +14,13 @@ export interface RecordedEvent {
     ctrlKey?: boolean;
     metaKey?: boolean;
     shiftKey?: boolean;
-    isHold?: boolean;        // ★ 长按标识（keyup 时为 true 表示长按）
-    holdDuration?: number;   // ★ 按键持续时间(ms)
+    isHold?: boolean;
+    holdDuration?: number;
     // 鼠标事件
     x?: number;
     y?: number;
-    button?: string;         // ★ 标准化按钮名：'left'|'middle'|'right'
-    buttonCode?: number;     // ★ 原始按钮编号（调试用）
+    button?: string;         // 'left' | 'middle' | 'right'
+    buttonCode?: number;
     deltaX?: number;
     deltaY?: number;
   };
@@ -37,41 +37,9 @@ export interface Macro {
 }
 
 export interface MacroSettings {
-  playbackSpeed: number; // 1 = 正常速度
-  loopCount: number;    // 0 = 无限循环
-  loopDelay: number;    // 循环间隔(ms)
-  // 录制灵敏度（鼠标）
-  mouseClickDebounceMs?: number;  // 鼠标点击去重阈值(ms)，默认20（低值保留连点能力）
-  mouseMoveThrottleMs?: number;   // 鼠标移动节流(ms)，默认16(~60fps采样率)
+  playbackSpeed: number;
+  loopCount: number;
+  loopDelay: number;
+  mouseClickDebounceMs?: number;
+  mouseMoveThrottleMs?: number;
 }
-
-export interface AppState {
-  isRecording: boolean;
-  isPlaying: boolean;
-  currentMacro: Macro | null;
-  savedMacros: Macro[];
-}
-
-// IPC 通道名
-export const IPC_CHANNELS = {
-  // 录制控制
-  START_RECORDING: 'recording:start',
-  STOP_RECORDING: 'recording:stop',
-  EVENT_CAPTURED: 'recording:event',
-  
-  // 回放控制
-  START_PLAYBACK: 'playback:start',
-  STOP_PLAYBACK: 'playback:stop',
-  PLAYBACK_PROGRESS: 'playback:progress',
-  
-  // 文件操作
-  SAVE_MACRO: 'file:save',
-  LOAD_MACRO: 'file:load',
-  LIST_MACROS: 'file:list',
-  DELETE_MACRO: 'file:delete',
-  
-  // 系统
-  GET_SCREEN_SIZE: 'system:screenSize',
-  SHOW_SAVE_DIALOG: 'dialog:save',
-  SHOW_OPEN_DIALOG: 'dialog:open',
-} as const;
