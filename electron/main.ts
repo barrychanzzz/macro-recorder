@@ -425,7 +425,7 @@ function createWindow() {
     title: 'MacroRecorder', show: false,
   });
   if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
-    mainWindowRef.loadURL('http://localhost:5173');
+    mainWindowRef.loadURL('http://localhost:5174');
     mainWindowRef.webContents.openDevTools();
   } else {
     mainWindowRef.loadFile(path.join(__dirname, '../dist/index.html'));

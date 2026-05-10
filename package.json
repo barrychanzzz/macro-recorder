@@ -4,12 +4,13 @@
   "description": "键盘鼠标操作录制与回放工具",
   "main": "dist-electron/main.js",
   "scripts": {
-    "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5174 && electron .\"",
     "build": "tsc && vite build && npm run electron:build",
     "electron:build": "tsc -p tsconfig.electron.json",
     "package": "npm run build && electron-builder --mac --win",
     "package:mac": "npm run build && electron-builder --mac",
-    "package:win": "npm run build && electron-builder --win"
+    "package:win": "npm run build && electron-builder --win",
+    "package:win-x64": "npm run build && electron-builder --win --x64"
   },
   "keywords": [
     "electron",
@@ -47,6 +48,7 @@
       "dist-electron/**/*"
     ],
     "mac": {
+      "icon": "build/icon.icns",
       "target": [
         "dmg",
         "zip"
@@ -54,6 +56,7 @@
       "category": "public.app-category.productivity"
     },
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         "nsis",
         "portable"
