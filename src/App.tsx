@@ -11,15 +11,15 @@ const DEFAULT_SETTINGS: MacroSettings = {
   playbackSpeed: 1,
   loopCount: 1,
   loopDelay: 1000,
-  mouseClickDebounceMs: 20,   // ★ 鼠标点击去重阈值(ms)，默认20ms（保留连点能力）
-  mouseMoveThrottleMs: 16,    // ★ 鼠标移动节流(ms)，默认16ms(~60fps)
+  mouseClickDebounceMs: 20,   // Mouse click debounce threshold (ms), default 20ms (preserves rapid-click ability)
+  mouseMoveThrottleMs: 16,    // Mouse move throttle (ms), default 16ms (~60fps)
 };
 
 function App() {
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [events, setEvents] = useState<RecordedEvent[]>([]);
-  const [macroName, setMacroName] = useState('未命名宏');
+  const [macroName, setMacroName] = useState('Untitled Macro');
   const [macroDescription, setMacroDescription] = useState('');
   const [settings, setSettings] = useState<MacroSettings>(DEFAULT_SETTINGS);
   const [playbackProgress, setPlaybackProgress] = useState({ current: 0, total: 0, percentage: 0 });
@@ -28,46 +28,46 @@ function App() {
   const [editingEvent, setEditingEvent] = useState<RecordedEvent | null>(null);
   const [selectedEvents, setSelectedEvents] = useState<Set<string>>(new Set());
 
-  // 用 ref 保持 events 的最新值，解决快捷键闭包捕获过期 state 的问题
+  // Use refs to keep latest values and avoid stale closure issues with keyboard shortcuts
   const eventsRef = useRef<RecordedEvent[]>([]);
   eventsRef.current = events;
 
-  // 同样保持 settings 和 isRecording 的最新值
+  // Same for settings and isRecording
   const settingsRef = useRef<MacroSettings>(settings);
   settingsRef.current = settings;
   const isRecordingRef = useRef<boolean>(isRecording);
   isRecordingRef.current = isRecording;
 
-  // 加载已保存的宏
+  // Load saved macros
   useEffect(() => {
     loadSavedMacros();
   }, []);
 
-  // 监听来自主进程的事件（uiohook 全局捕获，通过 IPC 转发）
+  // Listen for events from main process (uiohook global capture, forwarded via IPC)
   useEffect(() => {
     if (!window.electronAPI) return;
 
-    // uiohook 捕获到事件后，主进程会通过 IPC 发送过来
+    // Main process sends captured events via IPC
     const unsubEvent = window.electronAPI.onRecordingEvent((capturedEvent) => {
       setEvents(prev => [...prev, capturedEvent]);
     });
 
-    // 回放进度更新
+    // Playback progress updates
     const unsubProgress = window.electronAPI.onPlaybackProgress((progress) => {
       setPlaybackProgress(progress);
     });
 
-    // ★ 主进程已通过快捷键停止录制（冷却保护在主进程中完成）
+    // Main process stopped recording via shortcut (cooldown protection handled in main)
     const unsubRecordingStopped = window.electronAPI.onRecordingStopped(() => {
       setIsRecording(false);
     });
 
-    // ★ 主进程请求开始新录制（需用户确认）
+    // Main process requests starting a new recording (needs frontend confirmation)
     const unsubRequestStart = window.electronAPI.onRequestStartRecord(() => {
       handleStartRecordingWithConfirm();
     });
 
-    // 全局快捷键：Ctrl+Shift+P 切换回放（回放无循环问题，保持原逻辑）
+    // Global shortcut: Ctrl+Shift+P to toggle playback
     const unsubShortcutPlayback = window.electronAPI.onShortcutTogglePlayback(() => {
       handleTogglePlayback();
     });
@@ -92,21 +92,21 @@ function App() {
     }
   };
 
-  /** 带确认弹窗的开始录制逻辑（快捷键和按钮共用） */
+  /** Start recording with confirmation dialog (shared by shortcut and button) */
   const handleStartRecordingWithConfirm = useCallback(async () => {
     if (!window.electronAPI) return;
-    if (isRecordingRef.current) return; // 已在录制中，不响应（从 ref 读）
+    if (isRecordingRef.current) return; // Already recording, ignore
 
-    // 始终从 ref 读取最新值
+    // Always read latest values from refs
     const currentEvents = eventsRef.current;
 
-    // 开始新录制前确认（如果有已有事件）
+    // Confirm before starting new recording if there are existing events
     if (currentEvents.length > 0) {
-      if (!confirm('⚠️ 开始新录制将清空当前已录制的 ' + currentEvents.length + ' 个事件，是否继续？')) return;
+      if (!confirm('⚠️ Starting a new recording will clear ' + currentEvents.length + ' recorded events. Continue?')) return;
     }
-    setEvents([]); // 清空
+    setEvents([]); // Clear
 
-    // ★ 将灵敏度设置同步到主进程
+    // Sync sensitivity settings to main process
     const currentSettings = settingsRef.current;
     await window.electronAPI.setSensitivity({
       mouseClickDebounceMs: currentSettings.mouseClickDebounceMs ?? 60,
@@ -115,18 +115,18 @@ function App() {
 
     await window.electronAPI.startRecording();
     setIsRecording(true);
-  }, []); // 无依赖——所有动态值都通过 ref 读取
+  }, []); // No deps — all dynamic values read via refs
 
-  /** UI 按钮点击 → 切换录制 */
+  /** UI button click → toggle recording */
   const handleToggleRecording = async () => {
     if (!window.electronAPI) return;
 
     if (isRecording) {
-      // 按钮点击停止录制（不走快捷键路径）
+      // Button click to stop recording (not via shortcut path)
       await window.electronAPI.stopRecording();
       setIsRecording(false);
     } else {
-      // 按钮点击开始录制（带确认）
+      // Button click to start recording (with confirmation)
       await handleStartRecordingWithConfirm();
     }
   };
@@ -134,7 +134,7 @@ function App() {
   const handleTogglePlayback = async () => {
     if (!window.electronAPI) return;
 
-    // ★ 始终从 ref 读取最新值（避免闭包捕获过期 state）
+    // Always read latest values from refs (avoid stale closure state)
     const currentEvents = eventsRef.current;
     const currentSettings = settingsRef.current;
 
@@ -144,7 +144,7 @@ function App() {
       setPlaybackProgress({ current: 0, total: 0, percentage: 0 });
     } else {
       if (currentEvents.length === 0) {
-        alert('没有可回放的事件');
+        alert('No events to play back');
         return;
       }
       setIsPlaying(true);
@@ -156,7 +156,7 @@ function App() {
 
   const handleClearEvents = () => {
     if (events.length === 0) return;
-    if (confirm('确定要清空所有事件吗？')) {
+    if (confirm('Are you sure you want to clear all events?')) {
       setEvents([]);
     }
   };
@@ -190,10 +190,10 @@ function App() {
     try {
       await window.electronAPI.saveMacro(macro);
       await loadSavedMacros();
-      alert('宏保存成功！');
+      alert('Macro saved successfully!');
     } catch (error) {
       console.error('Failed to save macro:', error);
-      alert('保存失败');
+      alert('Failed to save');
     }
   };
 
@@ -210,14 +210,14 @@ function App() {
       }
     } catch (error) {
       console.error('Failed to load macro:', error);
-      alert('加载失败');
+      alert('Failed to load');
     }
   };
 
   const handleDeleteMacro = async (id: string) => {
     if (!window.electronAPI) return;
 
-    if (confirm('确定要删除这个宏吗？')) {
+    if (confirm('Are you sure you want to delete this macro?')) {
       try {
         await window.electronAPI.deleteMacro(id);
         await loadSavedMacros();
@@ -248,7 +248,7 @@ function App() {
 
   const handleDeleteSelected = () => {
     if (selectedEvents.size === 0) return;
-    if (confirm(`确定要删除选中的 ${selectedEvents.size} 个事件吗？`)) {
+    if (confirm(`Are you sure you want to delete ${selectedEvents.size} selected events?`)) {
       setEvents(prev => prev.filter(e => !selectedEvents.has(e.id)));
       setSelectedEvents(new Set());
     }
@@ -278,19 +278,19 @@ function App() {
       <main className="main-content">
         <div className="event-panel">
           <div className="panel-header">
-            <h2>录制的事件</h2>
-            <span className="event-count">{events.length} 个事件</span>
+            <h2>Recorded Events</h2>
+            <span className="event-count">{events.length} events</span>
           </div>
 
           <div className={`capture-area ${isRecording ? 'recording' : ''}`}>
             {isRecording ? (
               <div className="recording-indicator">
                 <span className="pulse"></span>
-                正在录制（可在后台捕获操作）...
+                Recording (capturing in background)...
               </div>
             ) : (
               <div className="idle-indicator">
-                点击"开始录制"或按 Ctrl+Shift+R 捕获您的操作
+                Click "Record" or press Ctrl+Shift+R to capture your actions
               </div>
             )}
           </div>
@@ -327,9 +327,9 @@ function App() {
 
       <footer className="footer">
         <div className="shortcuts-hint">
-          <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> 开始/停止录制
+          <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> Start/Stop Recording
           <span className="separator">|</span>
-          <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> 开始/停止回放
+          <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> Start/Stop Playback
         </div>
       </footer>
     </div>

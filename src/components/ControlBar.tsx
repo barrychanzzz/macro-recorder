@@ -35,7 +35,7 @@ const ControlBar: React.FC<ControlBarProps> = ({
           disabled={isPlaying}
         >
           <span className="btn-icon">{isRecording ? '⏹' : '⏺'}</span>
-          <span className="btn-label">{isRecording ? '停止录制' : '开始录制'}</span>
+          <span className="btn-label">{isRecording ? 'Stop' : 'Record'}</span>
         </button>
         
         <button
@@ -44,7 +44,7 @@ const ControlBar: React.FC<ControlBarProps> = ({
           disabled={isRecording || eventCount === 0}
         >
           <span className="btn-icon">{isPlaying ? '⏸' : '▶'}</span>
-          <span className="btn-label">{isPlaying ? '停止回放' : '回放'}</span>
+          <span className="btn-label">{isPlaying ? 'Stop' : 'Play'}</span>
         </button>
       </div>
 
@@ -69,7 +69,7 @@ const ControlBar: React.FC<ControlBarProps> = ({
           disabled={eventCount === 0 || isRecording || isPlaying}
         >
           <span className="btn-icon">🗑</span>
-          <span className="btn-label">清空</span>
+          <span className="btn-label">Clear</span>
         </button>
         
         <button
@@ -78,7 +78,7 @@ const ControlBar: React.FC<ControlBarProps> = ({
           disabled={isRecording || isPlaying}
         >
           <span className="btn-icon">📂</span>
-          <span className="btn-label">加载</span>
+          <span className="btn-label">Load</span>
         </button>
         
         <button
@@ -87,7 +87,7 @@ const ControlBar: React.FC<ControlBarProps> = ({
           disabled={eventCount === 0 || isRecording || isPlaying}
         >
           <span className="btn-icon">💾</span>
-          <span className="btn-label">保存</span>
+          <span className="btn-label">Save</span>
         </button>
         
         <button
@@ -96,7 +96,7 @@ const ControlBar: React.FC<ControlBarProps> = ({
           disabled={isRecording || isPlaying}
         >
           <span className="btn-icon">⚙️</span>
-          <span className="btn-label">设置</span>
+          <span className="btn-label">Settings</span>
         </button>
       </div>
     </div>

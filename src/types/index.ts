@@ -1,13 +1,13 @@
-// 类型定义
+// Type definitions
 export type EventType = 'keydown' | 'keyup' | 'mousedown' | 'mouseup' | 'mousemove' | 'wheel';
 
 export interface RecordedEvent {
   id: string;
   type: EventType;
   timestamp: number;
-  delay: number; // 距离上一个事件的延迟(ms)
+  delay: number; // Delay from previous event (ms)
   data: {
-    // 键盘事件
+    // Keyboard events
     key?: string;
     code?: number;
     altKey?: boolean;
@@ -16,7 +16,7 @@ export interface RecordedEvent {
     shiftKey?: boolean;
     isHold?: boolean;
     holdDuration?: number;
-    // 鼠标事件
+    // Mouse events
     x?: number;
     y?: number;
     button?: string;         // 'left' | 'middle' | 'right'

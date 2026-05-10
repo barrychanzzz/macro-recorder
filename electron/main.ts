@@ -5,9 +5,9 @@ import * as fs from 'fs';
 import { uIOhook, UiohookKey, UiohookKeyboardEvent, UiohookMouseEvent, UiohookWheelEvent } from 'uiohook-napi';
 import * as robot from 'robotjs';
 
-// ── 全局配置 ──────────────────────────────────────────────
+// ── Global Config ─────────────────────────────────────────
 
-/** 开发模式调试日志（发布时设为 false） */
+/** Debug logging in dev mode (set to false for release) */
 const DEBUG = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
 const log = {
@@ -20,12 +20,12 @@ const log = {
 robot.setKeyboardDelay(0);
 robot.setMouseDelay(0);
 
-// ── 类型定义（主进程内部使用） ───────────
+// ── Type Definitions (internal to main process) ───────────
 
 /**
- * 录制事件的数据部分。
- * 使用 Record 保持灵活性——事件来自 uiohook 捕获 + JSON 序列化，
- * 过度严格的联合体类型在实际访问时反而增加不必要的类型守卫开销。
+ * Data portion of a recorded event.
+ * Uses Record for flexibility — events come from uiohook capture + JSON serialization.
+ * Overly strict union types add unnecessary type guard overhead during access.
  */
 type EventData = Record<string, unknown> & {
   key?: string;
@@ -53,19 +53,19 @@ interface PlaybackSettings {
   loopDelay?: number;
 }
 
-// ── uiohook 反向映射 ─────────────────────────────────────
+// ── uiohook Reverse Map ───────────────────────────────────
 
 const uiohookKeyName: Record<number, string> = {};
 for (const [name, code] of Object.entries(UiohookKey)) {
   if (typeof code === 'number') uiohookKeyName[code] = name;
 }
 
-/** PascalCase → robotjs 小写+空格 */
+/** PascalCase → robotjs lowercase+space */
 function toRobotName(raw: string): string {
   return raw.toLowerCase().replace(/_/g, ' ');
 }
 
-/** 从事件数据解析按键名（统一 keydown/keyup 的重复逻辑） */
+/** Resolve key name from event data (unified keydown/keyup dedup logic) */
 function resolveKeyName(data: EventData): string {
   if (typeof data.key === 'string') return toRobotName(data.key);
   const code = Number(data.code);
@@ -73,7 +73,7 @@ function resolveKeyName(data: EventData): string {
   return raw ? toRobotName(raw) : String(code);
 }
 
-/** 构建修饰键列表（统一 keydown/keyup 的重复逻辑） */
+/** Build modifier key list (unified keydown/keyup dedup logic) */
 function buildModifiers(data: EventData): string[] {
   const mods: string[] = [];
   if (data.metaKey) mods.push('command');
@@ -83,7 +83,7 @@ function buildModifiers(data: EventData): string[] {
   return mods;
 }
 
-// ── 录制状态 ──────────────────────────────────────────────
+// ── Recording State ───────────────────────────────────────
 
 let isRecording = false;
 let recordedEvents: RecordedEventInternal[] = [];
@@ -107,7 +107,7 @@ let _keyDebounceMs = 0;
 const lastMouseDownTime = new Map<number, number>();
 let lastMouseMoveTime = 0;
 
-// ── 鼠标工具函数 ──────────────────────────────────────────
+// ── Mouse Helpers ────────────────────────────────────────
 
 const MOUSE_BUTTON_MAP: Record<number, string> = { 1: 'left', 0: 'left', 2: 'middle', 3: 'right' };
 function normalizeMouseButton(raw: unknown): string { return MOUSE_BUTTON_MAP[Number(raw)] || 'left'; }
@@ -130,7 +130,7 @@ function shouldRecordMouseMove(): boolean {
 function clearMouseState() { lastMouseDownTime.clear(); lastMouseMoveTime = 0; }
 function clearKeyState() { activeKeys.clear(); }
 
-// ── 事件转发 ──────────────────────────────────────────────
+// ── Event Forwarding ──────────────────────────────────────
 
 function forwardUiohookEvent(type: string, data: EventData) {
   if (!isRecording || !mainWindowRef) return;
@@ -142,7 +142,7 @@ function forwardUiohookEvent(type: string, data: EventData) {
   mainWindowRef.webContents.send('recording:event-captured', ev);
 }
 
-// ── 全局输入捕获 ──────────────────────────────────────────
+// ── Global Input Capture ──────────────────────────────────
 
 function startGlobalCapture() {
   uIOhook.on('keydown', (e: UiohookKeyboardEvent) => {
@@ -209,7 +209,7 @@ function stopGlobalCapture() {
   log.info('Global capture stopped');
 }
 
-// ── 回放引擎 ──────────────────────────────────────────────
+// ── Playback Engine ──────────────────────────────────────
 
 let isPlaying = false;
 let stopPlaybackFlag = false;
@@ -224,7 +224,7 @@ function moveMouseIfNeeded(x: number, y: number): void {
   }
 }
 
-/** 安全释放所有残留按键 */
+/** Safely release all stuck keys */
 function releaseAllStuckKeys() {
   if (playbackKeyDownKeys.size === 0) return;
   log.warn('Cleaning up stuck keys:', [...playbackKeyDownKeys]);
@@ -286,7 +286,7 @@ async function simulateEvent(ev: RecordedEventInternal): Promise<void> {
   }
 }
 
-// ── IPC 处理 ────────────────────────────────────────────────
+// ── IPC Handlers ───────────────────────────────────────────
 
 ipcMain.handle('recording:start', () => {
   isRecording = true;
@@ -377,7 +377,7 @@ ipcMain.handle('playback:stop', () => {
   return { success: true };
 });
 
-// ── 文件操作 ────────────────────────────────────────────────
+// ── File Operations ──────────────────────────────────────
 
 const getMacrosDir = (): string => {
   const dir = path.join(app.getPath('userData'), 'macros');
@@ -386,13 +386,13 @@ const getMacrosDir = (): string => {
 };
 
 ipcMain.handle('file:save', async (_event, macro: { name: string }) => {
-  const { filePath } = await dialog.showSaveDialog(mainWindowRef!, { title: '保存宏', defaultPath: `${macro.name}.json`, filters: [{ name: 'JSON Files', extensions: ['json'] }] });
+  const { filePath } = await dialog.showSaveDialog(mainWindowRef!, { title: 'Save Macro', defaultPath: `${macro.name}.json`, filters: [{ name: 'JSON Files', extensions: ['json'] }] });
   if (filePath) { fs.writeFileSync(filePath, JSON.stringify(macro, null, 2), 'utf-8'); return { success: true, filePath }; }
   return { success: false };
 });
 
 ipcMain.handle('file:load', async () => {
-  const { filePaths } = await dialog.showOpenDialog(mainWindowRef!, { title: '加载宏', filters: [{ name: 'JSON Files', extensions: ['json'] }], properties: ['openFile'] });
+  const { filePaths } = await dialog.showOpenDialog(mainWindowRef!, { title: 'Load Macro', filters: [{ name: 'JSON Files', extensions: ['json'] }], properties: ['openFile'] });
   if (filePaths?.length) { try { return { success: true, macro: JSON.parse(fs.readFileSync(filePaths[0], 'utf-8')) }; } catch { return { success: false, error: 'Failed to parse file' }; } }
   return { success: false };
 });
@@ -415,7 +415,7 @@ ipcMain.handle('storage:save', (_event, macro: { id: string }) => {
 
 ipcMain.handle('system:screenSize', () => screen.getPrimaryDisplay().workAreaSize);
 
-// ── 窗口 & 快捷键 & 生命周期 ────────────────────────────
+// ── Window & Shortcuts & Lifecycle ────────────────────────
 
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;

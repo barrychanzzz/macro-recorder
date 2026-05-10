@@ -1,47 +1,47 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 export interface ElectronAPI {
-  // 录制
+  // Recording
   startRecording: () => Promise<{ success: boolean }>;
   stopRecording: () => Promise<{ success: boolean; events: any[] }>;
   setSensitivity: (config: { keyDebounceMs?: number; mouseClickDebounceMs?: number; mouseMoveThrottleMs?: number }) => Promise<{ success: boolean }>;
 
-  // 回放
+  // Playback
   startPlayback: (events: any[], settings: any) => Promise<{ success: boolean; error?: string }>;
   stopPlayback: () => Promise<{ success: boolean }>;
 
-  // 事件监听（返回清理函数）
+  // Event listeners (return cleanup functions)
   onRecordingEvent: (callback: (event: any) => void) => () => void;
   onPlaybackProgress: (callback: (progress: any) => void) => () => void;
 
-  // 文件操作
+  // File operations
   saveMacro: (macro: any) => Promise<{ success: boolean; filePath?: string }>;
   loadMacro: () => Promise<{ success: boolean; macro?: any; error?: string }>;
   listMacros: () => Promise<any[]>;
   deleteMacro: (id: string) => Promise<{ success: boolean }>;
 
-  // 系统
+  // System
   getScreenSize: () => Promise<{ width: number; height: number }>;
 
-  // 快捷键事件（主进程 globalShortcut 触发后转发）
+  // Shortcut events (forwarded from main process globalShortcut)
   onShortcutTogglePlayback: (callback: () => void) => () => void;
-  // 主进程已停止录制并进入冷却期
+  // Main process stopped recording, now in cooldown
   onRecordingStopped: (callback: (data: { events: any[] }) => void) => () => void;
-  // 主进程请求开始新录制（需前端确认）
+  // Main process requests starting new recording (needs frontend confirmation)
   onRequestStartRecord: (callback: () => void) => () => void;
 }
 
 const electronAPI: ElectronAPI = {
-  // 录制控制
+  // Recording control
   startRecording: () => ipcRenderer.invoke('recording:start'),
   stopRecording: () => ipcRenderer.invoke('recording:stop'),
   setSensitivity: (config) => ipcRenderer.invoke('recording:setSensitivity', config),
 
-  // 回放控制
+  // Playback control
   startPlayback: (events, settings) => ipcRenderer.invoke('playback:start', { events, settings }),
   stopPlayback: () => ipcRenderer.invoke('playback:stop'),
 
-  // 事件监听（返回清理函数供 useEffect 卸载）
+  // Event listeners (return cleanup for useEffect unmount)
   onRecordingEvent: (callback) => {
     const handler = (_e: any, event: any) => callback(event);
     ipcRenderer.on('recording:event-captured', handler);
@@ -54,28 +54,28 @@ const electronAPI: ElectronAPI = {
     return () => ipcRenderer.removeListener('playback:progress', handler);
   },
 
-  // 文件操作
+  // File operations
   saveMacro: (macro) => ipcRenderer.invoke('file:save', macro),
   loadMacro: () => ipcRenderer.invoke('file:load'),
   listMacros: () => ipcRenderer.invoke('file:list'),
   deleteMacro: (id: string) => ipcRenderer.invoke('file:delete', id),
 
-  // 系统
+  // System
   getScreenSize: () => ipcRenderer.invoke('system:screenSize'),
 
-  // 快捷键监听
+  // Shortcut listeners
   onShortcutTogglePlayback: (callback) => {
     const handler = () => callback();
     ipcRenderer.on('shortcut:toggle-playback', handler);
     return () => ipcRenderer.removeListener('shortcut:toggle-playback', handler);
   },
-  // 主进程停止录制（快捷键触发，含冷却保护）
+  // Main process stopped recording (shortcut triggered, with cooldown protection)
   onRecordingStopped: (callback) => {
     const handler = (_e: any, data: { events: any[] }) => callback(data);
     ipcRenderer.on('shortcut:recording-stopped', handler);
     return () => ipcRenderer.removeListener('shortcut:recording-stopped', handler);
   },
-  // 主进程请求开始新录制（需要前端确认）
+  // Main process requests starting new recording (needs frontend confirmation)
   onRequestStartRecord: (callback) => {
     const handler = () => callback();
     ipcRenderer.on('shortcut:request-start-record', handler);

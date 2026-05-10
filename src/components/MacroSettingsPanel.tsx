@@ -21,17 +21,17 @@ const MacroSettingsPanel: React.FC<MacroSettingsPanelProps> = ({
     <div className="settings-overlay" onClick={onClose}>
       <div className="settings-panel" onClick={(e) => e.stopPropagation()}>
         <div className="settings-header">
-          <h2>设置</h2>
+          <h2>Settings</h2>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
 
         <div className="settings-body">
-          <h3 className="settings-section-title">回放设置</h3>
+          <h3 className="settings-section-title">Playback</h3>
 
           <div className="setting-item">
             <div className="setting-info">
-              <label>回放速度</label>
-              <span className="setting-desc">调整回放的速度倍率</span>
+              <label>Speed</label>
+              <span className="setting-desc">Adjust playback speed multiplier</span>
             </div>
             <div className="setting-control">
               <input
@@ -48,8 +48,8 @@ const MacroSettingsPanel: React.FC<MacroSettingsPanelProps> = ({
 
           <div className="setting-item">
             <div className="setting-info">
-              <label>循环次数</label>
-              <span className="setting-desc">设置为 0 表示无限循环</span>
+              <label>Loop Count</label>
+              <span className="setting-desc">Set to 0 for infinite loop</span>
             </div>
             <div className="setting-control">
               <input
@@ -59,14 +59,14 @@ const MacroSettingsPanel: React.FC<MacroSettingsPanelProps> = ({
                 value={settings.loopCount}
                 onChange={(e) => handleChange('loopCount', parseInt(e.target.value) || 0)}
               />
-              <span className="setting-unit">次</span>
+              <span className="setting-unit">x</span>
             </div>
           </div>
 
           <div className="setting-item">
             <div className="setting-info">
-              <label>循环间隔</label>
-              <span className="setting-desc">每次循环之间的等待时间</span>
+              <label>Loop Interval</label>
+              <span className="setting-desc">Wait time between each loop</span>
             </div>
             <div className="setting-control">
               <input
@@ -83,17 +83,17 @@ const MacroSettingsPanel: React.FC<MacroSettingsPanelProps> = ({
 
           <hr className="settings-divider" />
 
-          <h3 className="settings-section-title">录制灵敏度（鼠标）</h3>
+          <h3 className="settings-section-title">Recording Sensitivity (Mouse)</h3>
 
           <div className="setting-item">
             <div className="setting-info">
-              <label>点击去重阈值</label>
-              <span className="setting-desc">触控板连续点击的最小间隔，越小越灵敏（默认20ms）</span>
+              <label>Click Debounce</label>
+              <span className="setting-desc">Min interval for consecutive clicks on trackpad (default 20ms)</span>
             </div>
             <div className="setting-control">
               <input
                 type="range"
-                min="10"  // ★ 降低最小值到10ms
+                min="10"  // Lower minimum to 10ms
                 max="200"
                 step="5"
                 value={settings.mouseClickDebounceMs ?? 20}
@@ -105,13 +105,13 @@ const MacroSettingsPanel: React.FC<MacroSettingsPanelProps> = ({
 
           <div className="setting-item">
             <div className="setting-info">
-              <label>移动节流间隔</label>
-              <span className="setting-desc">鼠标移动事件的采样间隔，越小轨迹越精细（默认16ms≈60fps）</span>
+              <label>Move Throttle</label>
+              <span className="setting-desc">Sampling interval for mouse move events (default 16ms≈60fps)</span>
             </div>
             <div className="setting-control">
               <input
                 type="range"
-                min="8"  // ★ 降低最小值到8ms
+                min="8"  // Lower minimum to 8ms
                 max="100"
                 step="4"
                 value={settings.mouseMoveThrottleMs ?? 16}
@@ -124,7 +124,7 @@ const MacroSettingsPanel: React.FC<MacroSettingsPanelProps> = ({
 
         <div className="settings-footer">
           <button className="btn-primary" onClick={onClose}>
-            完成
+            Done
           </button>
         </div>
       </div>

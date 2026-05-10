@@ -23,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({ macroName, onMacroNameChange, isRecordi
           className="macro-name-input"
           value={macroName}
           onChange={(e) => onMacroNameChange(e.target.value)}
-          placeholder="输入宏名称..."
+          placeholder="Enter macro name..."
           disabled={isRecording}
         />
       </div>
@@ -31,7 +31,7 @@ const Header: React.FC<HeaderProps> = ({ macroName, onMacroNameChange, isRecordi
       <div className="header-right">
         <div className="status-badge">
           <span className={`status-dot ${isRecording ? 'recording' : 'idle'}`}></span>
-          {isRecording ? '录制中' : '就绪'}
+          {isRecording ? 'Recording' : 'Ready'}
         </div>
       </div>
     </header>

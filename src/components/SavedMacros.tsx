@@ -17,7 +17,7 @@ const SavedMacros: React.FC<SavedMacrosProps> = ({
 }) => {
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
-    return date.toLocaleDateString('zh-CN', {
+    return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -28,8 +28,8 @@ const SavedMacros: React.FC<SavedMacrosProps> = ({
   return (
     <div className="saved-macros">
       <div className="saved-macros-header">
-        <h2>已保存的宏</h2>
-        <button className="refresh-btn" onClick={onRefresh} title="刷新">
+        <h2>Saved Macros</h2>
+        <button className="refresh-btn" onClick={onRefresh} title="Refresh">
           🔄
         </button>
       </div>
@@ -38,8 +38,8 @@ const SavedMacros: React.FC<SavedMacrosProps> = ({
         {macros.length === 0 ? (
           <div className="empty-macros">
             <span className="empty-icon">📁</span>
-            <p>暂无保存的宏</p>
-            <p className="empty-hint">录制并保存后将在此显示</p>
+            <p>No saved macros</p>
+            <p className="empty-hint">Record and save macros to see them here</p>
           </div>
         ) : (
           macros.map((macro) => (
@@ -56,7 +56,7 @@ const SavedMacros: React.FC<SavedMacrosProps> = ({
                     e.stopPropagation();
                     onDeleteMacro(macro.id);
                   }}
-                  title="删除"
+                  title="Delete"
                 >
                   🗑️
                 </button>
@@ -68,7 +68,7 @@ const SavedMacros: React.FC<SavedMacrosProps> = ({
               
               <div className="macro-meta">
                 <span className="macro-events">
-                  📋 {macro.events.length} 个事件
+                  📋 {macro.events.length} events
                 </span>
                 <span className="macro-date">
                   {formatDate(macro.createdAt)}

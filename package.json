@@ -1,7 +1,7 @@
 {
   "name": "macro-recorder",
   "version": "1.0.0",
-  "description": "键盘鼠标操作录制与回放工具",
+  "description": "Keyboard and mouse macro recorder and playback tool",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5174 && electron .\"",
